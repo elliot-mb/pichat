@@ -57,23 +57,23 @@ func removeClient(id int, clients *map[int]Client, clientLock *sync.Mutex) {
 //30 seconds to respond with ack or disconnected
 func timeout(client *Client, clients map[int]Client, disconnect chan Message, clientLock *sync.Mutex) {
 	slow := make(chan bool)
-	//clientCopy := *client
+	clientCopy := *client
 	go func() {
 		time.Sleep(time.Second * 15)
 		slow <- true
 	}()
-	//fmt.Println("waiting for "+shared.CtrlCode("acknowledge")+" from '"+clientCopy.Name+"':", clientCopy.ID)
+	fmt.Println("waiting for "+shared.CtrlCode("acknowledge")+" from '"+clientCopy.Name+"':", clientCopy.ID)
 	select {
 	case <-*(client.Acknowledge):
-		//fmt.Println("acknowledged")
+		fmt.Println("acknowledged from '"+clientCopy.Name+"':", clientCopy.ID)
 		return
 	case <-slow:
 		if userExists(client.ID, &clients, clientLock) {
-			//fmt.Println("timed out")
+			fmt.Println("timed out")
 			fmt.Fprintln(*client.Conn, shared.CtrlCode("disconnect"))
 			disconnectClient(*client, disconnect)
 		} else {
-			//fmt.Println("client '"+clientCopy.Name+"':", client.ID, "already disconnected")
+			fmt.Println("client '"+clientCopy.Name+"':", client.ID, "already disconnected")
 		}
 	}
 }
@@ -119,13 +119,14 @@ func handleClient(client net.Conn, id int, msgs, unames, disconnect chan Message
 func announce(message string, sender int, clients *map[int]Client, disconnect chan Message, clientLock *sync.Mutex) {
 	clientLock.Lock()
 	client := (*clients)[sender]
-	go timeout(&client, *clients, disconnect, clientLock)
 	for key, entry := range *clients {
 		if key != sender {
 			fmt.Fprintln(*entry.Conn, "\000"+message)
+			//go timeout(&entry, *clients, disconnect, clientLock)
 			fmt.Println("sent '"+message+"' to", (*clients)[key].Name)
 		} else {
 			fmt.Fprintln(*entry.Conn, shared.CtrlCode("acknowledge")) //letting client know we got their message
+			go timeout(&client, *clients, disconnect, clientLock)
 		}
 	}
 	clientLock.Unlock()
@@ -183,16 +184,15 @@ func main() {
 				announce("user '"+name+"' joined", msg.sender, &clients, disconnect, &clientLock)
 
 				//time.Sleep(500 * time.Millisecond)
-				go func() {
-					onlineMessage := "users connected: "
-					for key, entry := range clients {
-						if msg.sender != key {
-							onlineMessage += entry.Name + " "
-						}
+				onlineMessage := "users connected: "
+				for key, entry := range clients {
+					if msg.sender != key {
+						onlineMessage += entry.Name + " "
 					}
-					fmt.Fprintf(*c.Conn, onlineMessage+"\n")
-					fmt.Println("sent online users")
-				}()
+				}
+				fmt.Fprintln(*c.Conn, onlineMessage)
+				//go timeout(&c, clients, disconnect, &clientLock)
+				fmt.Println("sent online users")
 
 			} else {
 

@@ -24,10 +24,10 @@ func read(conn net.Conn, showUser chan bool) {
 		msg, _ := bufio.NewReader(conn).ReadString('\n')
 		msg = shared.Sanitize(msg)
 		//fmt.Println("MESSAGE:" + msg)
-		if msg == shared.CtrlCode("acknowledge") {
-			acknowledge(conn) //let the server know we know that it received our message
-		} else if msg == shared.CtrlCode("disconnect") {
+		if msg == shared.CtrlCode("disconnect") {
 			os.Exit(1)
+		} else if msg == shared.CtrlCode("acknowledge") {
+			acknowledge(conn)
 		} else if len(msg) > 0 {
 			spaces := width - len(msg) - 1
 			if spaces < 0 {
