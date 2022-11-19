@@ -7,22 +7,38 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"pichat/shared"
 	"strings"
 	"syscall"
 )
 
 const width = 40
 
+func acknowledge(conn net.Conn) {
+	fmt.Fprintln(conn, shared.CtrlCode("acknowledge"))
+}
+
 func read(conn net.Conn, showUser chan bool) {
 	//TODO In a continuous loop, read a message from the server and display it.
 	for {
 		msg, _ := bufio.NewReader(conn).ReadString('\n')
-		spaces := width - len(msg) - 1
-		if spaces < 0 {
-			spaces = 0
+		msg = shared.Sanitize(msg)
+		//fmt.Println("MESSAGE:" + msg)
+		if msg == shared.CtrlCode("acknowledge") {
+			acknowledge(conn) //let the server know we know that it received our message
+		} else if msg == shared.CtrlCode("disconnect") {
+			os.Exit(1)
+		} else if len(msg) > 0 {
+			spaces := width - len(msg) - 1
+			if spaces < 0 {
+				spaces = 0
+			}
+			fmt.Println("\r\r" + msg + strings.Repeat(" ", spaces))
+			showUser <- true
+		} else {
+			fmt.Println("\rerror 500: server has gone offline" + strings.Repeat(" ", width))
+			os.Exit(1)
 		}
-		fmt.Println("\r" + msg[:len(msg)-1] + strings.Repeat(" ", spaces))
-		showUser <- true
 	}
 }
 
@@ -30,7 +46,12 @@ func write(conn net.Conn, showUser chan bool) {
 	//TODO Continually get input from the user and send messages to the server.
 	r := bufio.NewReader(os.Stdin)
 	msg, _ := r.ReadString('\n')
-	fmt.Fprintf(conn, msg)
+	fmt.Fprintf(conn, "\000"+msg)
+	//go func() {
+	//	time.Sleep(5 * time.Second)
+	//	acknowledge(conn)
+	//	//cleanup(conn)
+	//}()
 	showUser <- true
 }
 
@@ -42,7 +63,8 @@ func username(username string, showUser chan bool) {
 }
 
 func cleanup(conn net.Conn) {
-	fmt.Fprintf(conn, "<DISCONNECT>")
+	fmt.Fprintf(conn, shared.CtrlCode("disconnect"))
+	os.Exit(1)
 }
 
 func main() {
@@ -57,8 +79,7 @@ func main() {
 		fmt.Printf("Error Dialing server: %s\n", err)
 		os.Exit(1)
 	}
-
-	fmt.Fprintln(conn, *pUsername)
+	fmt.Fprintln(conn, shared.CtrlCode("username")+*pUsername)
 	go func() {
 		<-c
 		cleanup(conn)
