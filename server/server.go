@@ -183,16 +183,18 @@ func main() {
 				fmt.Println(U+" '"+name+"' joined with id", msg.sender)
 				announce("user '"+name+"' joined", msg.sender, &clients, disconnect, &clientLock)
 
-				//time.Sleep(500 * time.Millisecond)
-				onlineMessage := "users connected: "
-				for key, entry := range clients {
-					if msg.sender != key {
-						onlineMessage += entry.Name + " "
+				go func() {
+					time.Sleep(500 * time.Millisecond)
+					onlineMessage := "users connected: "
+					for key, entry := range clients {
+						if msg.sender != key {
+							onlineMessage += entry.Name + " "
+						}
 					}
-				}
-				fmt.Fprintln(*c.Conn, onlineMessage)
-				//go timeout(&c, clients, disconnect, &clientLock)
-				fmt.Println("sent online users")
+					fmt.Fprintln(*c.Conn, onlineMessage)
+					//go timeout(&c, clients, disconnect, &clientLock)
+					fmt.Println("sent online users")
+				}()
 
 			} else {
 
