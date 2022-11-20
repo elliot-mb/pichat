@@ -17,6 +17,6 @@ If you see an error about connection refusal when connecting without changing th
 - Clone this repository
 - Enter the top level directory
 - Run the server (``go run server/server.go -port=<port>``)\
-  The port flag provides information to the server as to which port to listen on\
+  The port flag provides information to the server as to which port to listen on
   
 Server refuses all HTTP/S connections as a 'security' measure; it only allows connections from the ``client.go`` program. Or any program that can spoof the behaviour of ``client.go`` by reproducing it's control codes. 
