@@ -1,7 +1,7 @@
 # PiChat
 A tiny chat app self-hosted via my raspberry pi; written in go, based off an exercise given to me for my concurrent programming classes. 
 ## Start guide
-For if you want to try it out for yourself.
+If you want to try it out for yourself.
 ### Prerequisites
 - [Golang 1.16 or later.](https://go.dev/doc/install)
 ### Start the client
