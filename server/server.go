@@ -184,7 +184,7 @@ func main() {
 				announce("user '"+name+"' joined", msg.sender, &clients, disconnect, &clientLock)
 
 				go func() {
-					time.Sleep(500 * time.Millisecond)
+					//time.Sleep(500 * time.Millisecond)
 					onlineMessage := "users connected: "
 					for key, entry := range clients {
 						if msg.sender != key {
@@ -203,7 +203,7 @@ func main() {
 				if err != nil {
 					handleError("couldn't close connection to user", err)
 				}
-				removeClient(msg.sender, &clients, &clientLock)
+				go removeClient(msg.sender, &clients, &clientLock)
 			}
 
 		case msg := <-msgs:
@@ -221,7 +221,7 @@ func main() {
 			if err != nil {
 				handleError("couldn't close connection to user", err)
 			}
-			removeClient(msg.sender, &clients, &clientLock)
+			go removeClient(msg.sender, &clients, &clientLock)
 		}
 	}
 }
