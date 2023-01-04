@@ -11,7 +11,7 @@ If you want to try it out for yourself.
   Here you can use optional flags like ``-uname=<username>`` to enter an alias (in place of ``<username>``)\
   By default the flag ``-server=<address:port>`` is pointed at my raspberry pi's DDNS, but feel free to host this server locally or elsewhere; in which case you will need to connect by setting this flag to where you decide to host it. 
   
-If you see an error about connection refusal when connecting without changing the ``-server`` flag, the server may be down. 
+If you see an error about connection refusal when connecting without changing the ``-server`` flag, **the server may be down**. 
 
 ### Start the server
 - Clone this repository
